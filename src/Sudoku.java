@@ -1,76 +1,140 @@
-public class Sudoku {
-
-    static int N = 9;
-
-    static boolean solveSudoku(int grid[][], int row,
-                               int col)
+/* A Backtracking program in
+Java to solve Sudoku problem */
+class Sudoku
+{
+    public static boolean isSafe(int[][] board,
+                                 int row, int col,
+                                 int num)
     {
+        // Row has the unique (row-clash)
+        for (int d = 0; d < board.length; d++)
+        {
 
-
-        if (row == N - 1 && col == N)
-            return true;
-
-
-        if (col == N) {
-            row++;
-            col = 0;
+            // Check if the number we are trying to
+            // place is already present in
+            // that row, return false;
+            if (board[row][d] == num) {
+                return false;
+            }
         }
 
-        if (grid[row][col] != 0)
-            return solveSudoku(grid, row, col + 1);
+        // Column has the unique numbers (column-clash)
+        for (int r = 0; r < board.length; r++)
+        {
 
-        for (int num = 1; num < 10; num++) {
-
-            if (isSafe(grid, row, col, num)) {
-
-                grid[row][col] = num;
-
-                if (solveSudoku(grid, row, col + 1))
-                    return true;
+            // Check if the number
+            // we are trying to
+            // place is already present in
+            // that column, return false;
+            if (board[r][col] == num)
+            {
+                return false;
             }
+        }
 
-            grid[row][col] = 0;
+        // Corresponding square has
+        // unique number (box-clash)
+        int sqrt = (int)Math.sqrt(board.length);
+        int boxRowStart = row - row % sqrt;
+        int boxColStart = col - col % sqrt;
+
+        for (int r = boxRowStart;
+             r < boxRowStart + sqrt; r++)
+        {
+            for (int d = boxColStart;
+                 d < boxColStart + sqrt; d++)
+            {
+                if (board[r][d] == num)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // if there is no clash, it's safe
+        return true;
+    }
+
+    public static boolean solveSudoku(
+            int[][] board, int n)
+    {
+        int row = -1;
+        int col = -1;
+        boolean isEmpty = true;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                if (board[i][j] == 0)
+                {
+                    row = i;
+                    col = j;
+
+                    // We still have some remaining
+                    // missing values in Sudoku
+                    isEmpty = false;
+                    break;
+                }
+            }
+            if (!isEmpty) {
+                break;
+            }
+        }
+
+        // No empty space left
+        if (isEmpty)
+        {
+            return true;
+        }
+
+        // Else for each-row backtrack
+        for (int num = 1; num <= n; num++)
+        {
+            if (isSafe(board, row, col, num))
+            {
+                board[row][col] = num;
+                if (solveSudoku(board, n))
+                {
+                    // print(board, n);
+                    return true;
+                }
+                else
+                {
+                    // replace it
+                    board[row][col] = 0;
+                }
+            }
         }
         return false;
     }
 
-    static void print(int[][] grid)
+    public static void print(
+            int[][] board, int N)
     {
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++)
-                System.out.print(grid[i][j] + " ");
-            System.out.println();
+
+        // We got the answer, just print it
+        for (int r = 0; r < N; r++)
+        {
+            for (int d = 0; d < N; d++)
+            {
+                System.out.print(board[r][d]);
+                System.out.print(" ");
+            }
+            System.out.print("\n");
+
+            if ((r + 1) % (int)Math.sqrt(N) == 0)
+            {
+                System.out.print("");
+            }
         }
     }
 
-    static boolean isSafe(int[][] grid, int row, int col,
-                          int num)
+    // Driver Code
+    public static void main(String args[])
     {
 
-
-        for (int x = 0; x <= 8; x++)
-            if (grid[row][x] == num)
-                return false;
-
-
-        for (int x = 0; x <= 8; x++)
-            if (grid[x][col] == num)
-                return false;
-
-
-        int startRow = row - row % 3, startCol
-                = col - col % 3;
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                if (grid[i + startRow][j + startCol] == num)
-                    return false;
-
-        return true;
-    }
-
-    public static void main(String[] args)
-    {
-        int grid[][] = { { 3, 0, 6, 5, 0, 8, 4, 0, 0 },
+        int[][] board = new int[][] {
+                { 3, 0, 6, 5, 0, 8, 4, 0, 0 },
                 { 5, 2, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 8, 7, 0, 0, 0, 0, 3, 1 },
                 { 0, 0, 3, 0, 1, 0, 0, 8, 0 },
@@ -78,11 +142,20 @@ public class Sudoku {
                 { 0, 5, 0, 0, 9, 0, 6, 0, 0 },
                 { 1, 3, 0, 0, 0, 0, 2, 5, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 7, 4 },
-                { 0, 0, 5, 2, 0, 6, 3, 0, 0 } };
+                { 0, 0, 5, 2, 0, 6, 3, 0, 0 }
+        };
+        int N = board.length;
 
-        if (solveSudoku(grid, 0, 0))
-            print(grid);
-        else
-            System.out.println("No Solution exists");
+        if (solveSudoku(board, N))
+        {
+            // print solution
+            print(board, N);
+        }
+        else {
+            System.out.println("No solution");
+        }
     }
 }
+
+// This code is contributed
+// by MohanDas
